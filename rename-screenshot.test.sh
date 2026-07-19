@@ -95,5 +95,29 @@ touch "$SCREENSHOTS_DIR/has-collision.png"
 result=$(resolve_final_name "$SCREENSHOTS_DIR" "has-collision" "png" "20260710-143022")
 assert_eq "resolve_final_name with collision" "has-collision-20260710-143022.png" "$result"
 
+FAKE_CLAUDE="$TEST_TMP/fake-claude"
+cat > "$FAKE_CLAUDE" <<'EOF'
+#!/usr/bin/env bash
+echo "operate-incident-view-timeline"
+EOF
+chmod +x "$FAKE_CLAUDE"
+
+result=$(CLAUDE_BIN="$FAKE_CLAUDE" get_caption "$SCREENSHOTS_DIR/does-not-matter.png")
+assert_eq "get_caption returns CLI stdout" "operate-incident-view-timeline" "$result"
+
+FAKE_CLAUDE_FAIL="$TEST_TMP/fake-claude-fail"
+cat > "$FAKE_CLAUDE_FAIL" <<'EOF'
+#!/usr/bin/env bash
+exit 1
+EOF
+chmod +x "$FAKE_CLAUDE_FAIL"
+
+if CLAUDE_BIN="$FAKE_CLAUDE_FAIL" get_caption "$SCREENSHOTS_DIR/does-not-matter.png" >/dev/null 2>&1; then
+  echo "FAIL: get_caption should propagate CLI failure exit code"
+  FAILS=$((FAILS + 1))
+else
+  echo "PASS: get_caption propagates CLI failure exit code"
+fi
+
 echo "--- $FAILS failure(s) ---"
 [ "$FAILS" -eq 0 ]

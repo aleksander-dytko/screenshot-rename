@@ -69,6 +69,12 @@ resolve_final_name() {
   printf '%s' "$base-$timestamp.$ext"
 }
 
+get_caption() {
+  local file="$1"
+  local prompt="Generate a short descriptive filename slug (lowercase words separated by hyphens, no extension, max 8 words) for what is shown in this screenshot, and respond with ONLY the slug and no other text: ${file}"
+  "${CLAUDE_BIN:-claude}" -p "$prompt" --model claude-haiku-4-5 --output-format text --bare --max-turns 1
+}
+
 # Only run main when executed directly, not when sourced by the test harness
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   main "$@"
