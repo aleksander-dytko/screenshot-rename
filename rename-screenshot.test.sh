@@ -30,7 +30,24 @@ assert_eq() {
 
 echo "--- rename-screenshot.sh test suite ---"
 
-# (assertions added in later tasks go here)
+result=$(sanitize_caption "Operate Incident View -- Process Instance Timeline!!")
+assert_eq "sanitize_caption basic punctuation+case" "operate-incident-view-process-instance-timeline" "$result"
+
+result=$(sanitize_caption "")
+assert_eq "sanitize_caption empty input" "" "$result"
+
+result=$(sanitize_caption "   ...   ")
+assert_eq "sanitize_caption only punctuation" "" "$result"
+
+long_input=$(printf 'word%.0s ' {1..30})
+result=$(sanitize_caption "$long_input")
+result_len=${#result}
+if [ "$result_len" -le 60 ] && [[ "$result" != *- ]]; then
+  echo "PASS: sanitize_caption caps length and has no trailing hyphen"
+else
+  echo "FAIL: sanitize_caption length cap (len=$result_len, result='$result')"
+  FAILS=$((FAILS + 1))
+fi
 
 echo "--- $FAILS failure(s) ---"
 [ "$FAILS" -eq 0 ]

@@ -10,6 +10,17 @@ log_line() {
   printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >> "$LOG_FILE"
 }
 
+sanitize_caption() {
+  local raw="$1"
+  local s
+  s=$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]')
+  s=$(printf '%s' "$s" | sed -E 's/[^a-z0-9]+/-/g')
+  s=$(printf '%s' "$s" | sed -E 's/^-+//; s/-+$//')
+  s="${s:0:60}"
+  s=$(printf '%s' "$s" | sed -E 's/-+$//')
+  printf '%s' "$s"
+}
+
 # Only run main when executed directly, not when sourced by the test harness
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   main "$@"
