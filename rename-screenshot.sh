@@ -72,7 +72,7 @@ resolve_final_name() {
 get_caption() {
   local file="$1"
   local prompt="Generate a short descriptive filename slug (lowercase words separated by hyphens, no extension, max 8 words) for what is shown in this screenshot, and respond with ONLY the slug and no other text: ${file}"
-  "${CLAUDE_BIN:-claude}" -p "$prompt" --model claude-haiku-4-5 --output-format text --bare --max-turns 1
+  "${CLAUDE_BIN:-claude}" -p "$prompt" --model claude-haiku-4-5 --output-format text --max-turns 3
 }
 
 process_screenshot() {
