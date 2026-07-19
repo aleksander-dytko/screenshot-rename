@@ -184,5 +184,18 @@ else
   FAILS=$((FAILS + 1))
 fi
 
+# main() integration test
+rm -f "$ATTEMPTS_FILE"
+rm -f "$SCREENSHOTS_DIR"/*
+touch "$SCREENSHOTS_DIR/SCR-20260712-qrst.png"
+touch "$SCREENSHOTS_DIR/already-renamed.png"
+CLAUDE_BIN="$FAKE_CLAUDE" main
+if [ -f "$SCREENSHOTS_DIR/operate-incident-view-timeline.png" ] && [ -f "$SCREENSHOTS_DIR/already-renamed.png" ] && [ ! -e "$SCREENSHOTS_DIR/SCR-20260712-qrst.png" ]; then
+  echo "PASS: main renames only unprocessed Shottr files, leaves others alone"
+else
+  echo "FAIL: main renames only unprocessed Shottr files, leaves others alone"
+  FAILS=$((FAILS + 1))
+fi
+
 echo "--- $FAILS failure(s) ---"
 [ "$FAILS" -eq 0 ]

@@ -117,6 +117,18 @@ process_screenshot() {
   log_line "OK $filename -> $final_name"
 }
 
+main() {
+  mkdir -p "$SCREENSHOTS_DIR"
+  local f name
+  for f in "$SCREENSHOTS_DIR"/*; do
+    [ -e "$f" ] || continue
+    name=$(basename "$f")
+    if is_shottr_screenshot "$name"; then
+      process_screenshot "$SCREENSHOTS_DIR" "$name" || true
+    fi
+  done
+}
+
 # Only run main when executed directly, not when sourced by the test harness
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   main "$@"
