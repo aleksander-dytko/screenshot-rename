@@ -21,6 +21,11 @@ sanitize_caption() {
   printf '%s' "$s"
 }
 
+get_capture_timestamp() {
+  local file="$1"
+  stat -f "%Sm" -t "%Y%m%d-%H%M%S" "$file"
+}
+
 # Only run main when executed directly, not when sourced by the test harness
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   main "$@"

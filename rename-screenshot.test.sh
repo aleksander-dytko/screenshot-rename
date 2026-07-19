@@ -49,5 +49,9 @@ else
   FAILS=$((FAILS + 1))
 fi
 
+touch -t 202607101430.22 "$TEST_TMP/timestamp-test.png"
+result=$(get_capture_timestamp "$TEST_TMP/timestamp-test.png")
+assert_eq "get_capture_timestamp reads mtime" "20260710-143022" "$result"
+
 echo "--- $FAILS failure(s) ---"
 [ "$FAILS" -eq 0 ]
