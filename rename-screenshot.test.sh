@@ -88,5 +88,12 @@ clear_attempt "SCR-20260710-abcd.png"
 result=$(get_attempt_count "SCR-20260710-abcd.png")
 assert_eq "clear_attempt resets to 0" "0" "$result"
 
+result=$(resolve_final_name "$SCREENSHOTS_DIR" "no-collision" "png" "20260710-143022")
+assert_eq "resolve_final_name no collision" "no-collision.png" "$result"
+
+touch "$SCREENSHOTS_DIR/has-collision.png"
+result=$(resolve_final_name "$SCREENSHOTS_DIR" "has-collision" "png" "20260710-143022")
+assert_eq "resolve_final_name with collision" "has-collision-20260710-143022.png" "$result"
+
 echo "--- $FAILS failure(s) ---"
 [ "$FAILS" -eq 0 ]

@@ -59,6 +59,16 @@ clear_attempt() {
   jq --arg k "$name" 'del(.[$k])' "$ATTEMPTS_FILE" > "$tmp" && mv "$tmp" "$ATTEMPTS_FILE"
 }
 
+resolve_final_name() {
+  local dir="$1" base="$2" ext="$3" timestamp="$4"
+  local candidate="$dir/$base.$ext"
+  if [ ! -e "$candidate" ]; then
+    printf '%s' "$base.$ext"
+    return
+  fi
+  printf '%s' "$base-$timestamp.$ext"
+}
+
 # Only run main when executed directly, not when sourced by the test harness
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   main "$@"
