@@ -75,6 +75,44 @@ get_caption() {
   "${CLAUDE_BIN:-claude}" -p "$prompt" --model claude-haiku-4-5 --output-format text --bare --max-turns 1
 }
 
+process_screenshot() {
+  local dir="$1" filename="$2"
+  local filepath="$dir/$filename"
+
+  local attempts
+  attempts=$(get_attempt_count "$filename")
+  if [ "$attempts" -ge 3 ]; then
+    log_line "GIVEUP $filename (3 failed attempts, needs manual look)"
+    return 0
+  fi
+
+  local raw_caption
+  if ! raw_caption=$(get_caption "$filepath" 2>>"$LOG_FILE"); then
+    increment_attempt "$filename"
+    log_line "FAIL $filename (claude call failed, attempt $((attempts + 1)))"
+    return 1
+  fi
+
+  local slug
+  slug=$(sanitize_caption "$raw_caption")
+  if [ -z "$slug" ]; then
+    increment_attempt "$filename"
+    log_line "FAIL $filename (caption sanitized to empty, attempt $((attempts + 1)))"
+    return 1
+  fi
+
+  local ext="${filename##*.}"
+  ext=$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')
+  local timestamp
+  timestamp=$(get_capture_timestamp "$filepath")
+  local final_name
+  final_name=$(resolve_final_name "$dir" "$slug" "$ext" "$timestamp")
+
+  mv "$filepath" "$dir/$final_name"
+  clear_attempt "$filename"
+  log_line "OK $filename -> $final_name"
+}
+
 # Only run main when executed directly, not when sourced by the test harness
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   main "$@"

@@ -119,5 +119,36 @@ else
   echo "PASS: get_caption propagates CLI failure exit code"
 fi
 
+# Success path
+rm -f "$ATTEMPTS_FILE"
+touch "$SCREENSHOTS_DIR/SCR-20260710-abcd.png"
+touch -t 202607101430.22 "$SCREENSHOTS_DIR/SCR-20260710-abcd.png"
+CLAUDE_BIN="$FAKE_CLAUDE" process_screenshot "$SCREENSHOTS_DIR" "SCR-20260710-abcd.png"
+if [ -f "$SCREENSHOTS_DIR/operate-incident-view-timeline.png" ]; then
+  echo "PASS: process_screenshot renames on success"
+else
+  echo "FAIL: process_screenshot renames on success"
+  FAILS=$((FAILS + 1))
+fi
+
+# Failure path: file untouched, attempt count increments
+touch "$SCREENSHOTS_DIR/SCR-20260711-wxyz.png"
+CLAUDE_BIN="$FAKE_CLAUDE_FAIL" process_screenshot "$SCREENSHOTS_DIR" "SCR-20260711-wxyz.png" || true
+if [ -f "$SCREENSHOTS_DIR/SCR-20260711-wxyz.png" ]; then
+  echo "PASS: process_screenshot leaves file untouched on CLI failure"
+else
+  echo "FAIL: process_screenshot leaves file untouched on CLI failure"
+  FAILS=$((FAILS + 1))
+fi
+result=$(get_attempt_count "SCR-20260711-wxyz.png")
+assert_eq "process_screenshot increments attempt count on failure" "1" "$result"
+
+# Give-up path: 3rd failure stops retrying (count stays at 3, no crash)
+CLAUDE_BIN="$FAKE_CLAUDE_FAIL" process_screenshot "$SCREENSHOTS_DIR" "SCR-20260711-wxyz.png" || true
+CLAUDE_BIN="$FAKE_CLAUDE_FAIL" process_screenshot "$SCREENSHOTS_DIR" "SCR-20260711-wxyz.png" || true
+CLAUDE_BIN="$FAKE_CLAUDE_FAIL" process_screenshot "$SCREENSHOTS_DIR" "SCR-20260711-wxyz.png" || true
+result=$(get_attempt_count "SCR-20260711-wxyz.png")
+assert_eq "process_screenshot stops incrementing past 3 attempts" "3" "$result"
+
 echo "--- $FAILS failure(s) ---"
 [ "$FAILS" -eq 0 ]
