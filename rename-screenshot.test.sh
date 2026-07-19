@@ -74,5 +74,19 @@ else
   echo "PASS: is_shottr_screenshot false for unrelated file"
 fi
 
+rm -f "$ATTEMPTS_FILE"
+result=$(get_attempt_count "SCR-20260710-abcd.png")
+assert_eq "get_attempt_count starts at 0" "0" "$result"
+
+increment_attempt "SCR-20260710-abcd.png"
+increment_attempt "SCR-20260710-abcd.png"
+increment_attempt "SCR-20260710-abcd.png"
+result=$(get_attempt_count "SCR-20260710-abcd.png")
+assert_eq "increment_attempt three times" "3" "$result"
+
+clear_attempt "SCR-20260710-abcd.png"
+result=$(get_attempt_count "SCR-20260710-abcd.png")
+assert_eq "clear_attempt resets to 0" "0" "$result"
+
 echo "--- $FAILS failure(s) ---"
 [ "$FAILS" -eq 0 ]

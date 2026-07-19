@@ -32,6 +32,33 @@ is_shottr_screenshot() {
   [[ "$name" =~ ^SCR-[0-9]{8}-[a-zA-Z]{4}\.(png|jpg|jpeg)$ ]]
 }
 
+ensure_attempts_file() {
+  mkdir -p "$(dirname "$ATTEMPTS_FILE")"
+  [ -f "$ATTEMPTS_FILE" ] || echo '{}' > "$ATTEMPTS_FILE"
+}
+
+get_attempt_count() {
+  local name="$1"
+  ensure_attempts_file
+  jq -r --arg k "$name" '.[$k] // 0' "$ATTEMPTS_FILE"
+}
+
+increment_attempt() {
+  local name="$1"
+  ensure_attempts_file
+  local tmp
+  tmp=$(mktemp)
+  jq --arg k "$name" '.[$k] = ((.[$k] // 0) + 1)' "$ATTEMPTS_FILE" > "$tmp" && mv "$tmp" "$ATTEMPTS_FILE"
+}
+
+clear_attempt() {
+  local name="$1"
+  ensure_attempts_file
+  local tmp
+  tmp=$(mktemp)
+  jq --arg k "$name" 'del(.[$k])' "$ATTEMPTS_FILE" > "$tmp" && mv "$tmp" "$ATTEMPTS_FILE"
+}
+
 # Only run main when executed directly, not when sourced by the test harness
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   main "$@"
