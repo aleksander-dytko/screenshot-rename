@@ -108,7 +108,11 @@ process_screenshot() {
   local final_name
   final_name=$(resolve_final_name "$dir" "$slug" "$ext" "$timestamp")
 
-  mv "$filepath" "$dir/$final_name"
+  if ! mv "$filepath" "$dir/$final_name"; then
+    increment_attempt "$filename"
+    log_line "FAIL $filename (rename failed, attempt $((attempts + 1)))"
+    return 1
+  fi
   clear_attempt "$filename"
   log_line "OK $filename -> $final_name"
 }

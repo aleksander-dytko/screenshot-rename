@@ -150,5 +150,39 @@ CLAUDE_BIN="$FAKE_CLAUDE_FAIL" process_screenshot "$SCREENSHOTS_DIR" "SCR-202607
 result=$(get_attempt_count "SCR-20260711-wxyz.png")
 assert_eq "process_screenshot stops incrementing past 3 attempts" "3" "$result"
 
+# Rename failure path: mv fails due to permission denied
+# Create file in SCREENSHOTS_DIR, then make directory read-only so mv fails
+rm -f "$ATTEMPTS_FILE"
+touch "$SCREENSHOTS_DIR/SCR-20260712-mvfail.png"
+touch -t 202607121430.22 "$SCREENSHOTS_DIR/SCR-20260712-mvfail.png"
+
+# Make directory read-only to force mv failure
+chmod 555 "$SCREENSHOTS_DIR"
+
+CLAUDE_BIN="$FAKE_CLAUDE" process_screenshot "$SCREENSHOTS_DIR" "SCR-20260712-mvfail.png" || true
+
+# Restore write permission for cleanup
+chmod 755 "$SCREENSHOTS_DIR"
+
+# Verify: original file still exists under original name
+if [ -f "$SCREENSHOTS_DIR/SCR-20260712-mvfail.png" ]; then
+  echo "PASS: process_screenshot leaves file untouched when mv fails"
+else
+  echo "FAIL: process_screenshot leaves file untouched when mv fails"
+  FAILS=$((FAILS + 1))
+fi
+
+# Verify: attempt count incremented
+result=$(get_attempt_count "SCR-20260712-mvfail.png")
+assert_eq "process_screenshot increments attempt on mv failure" "1" "$result"
+
+# Verify: log contains FAIL entry
+if grep -q "FAIL SCR-20260712-mvfail.png (rename failed, attempt 1)" "$LOG_FILE"; then
+  echo "PASS: process_screenshot logs FAIL when mv fails"
+else
+  echo "FAIL: process_screenshot logs FAIL when mv fails"
+  FAILS=$((FAILS + 1))
+fi
+
 echo "--- $FAILS failure(s) ---"
 [ "$FAILS" -eq 0 ]
