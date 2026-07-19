@@ -7,6 +7,7 @@ export SCREENSHOTS_DIR
 export ATTEMPTS_FILE
 export LOG_FILE
 TEST_TMP="$(mktemp -d)"
+trap 'rm -rf "$TEST_TMP"' EXIT
 SCREENSHOTS_DIR="$TEST_TMP/screenshots"
 ATTEMPTS_FILE="$TEST_TMP/attempts.json"
 LOG_FILE="$TEST_TMP/test.log"
@@ -14,6 +15,7 @@ mkdir -p "$SCREENSHOTS_DIR"
 
 # shellcheck source=rename-screenshot.sh
 source "$SCRIPT_DIR/rename-screenshot.sh"
+set +e
 
 FAILS=0
 assert_eq() {
@@ -31,5 +33,4 @@ echo "--- rename-screenshot.sh test suite ---"
 # (assertions added in later tasks go here)
 
 echo "--- $FAILS failure(s) ---"
-rm -rf "$TEST_TMP"
 [ "$FAILS" -eq 0 ]
