@@ -26,6 +26,12 @@ get_capture_timestamp() {
   stat -f "%Sm" -t "%Y%m%d-%H%M%S" "$file"
 }
 
+is_shottr_screenshot() {
+  local name
+  name=$(basename "$1")
+  [[ "$name" =~ ^SCR-[0-9]{8}-[a-zA-Z]{4}\.(png|jpg|jpeg)$ ]]
+}
+
 # Only run main when executed directly, not when sourced by the test harness
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   main "$@"

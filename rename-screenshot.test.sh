@@ -53,5 +53,26 @@ touch -t 202607101430.22 "$TEST_TMP/timestamp-test.png"
 result=$(get_capture_timestamp "$TEST_TMP/timestamp-test.png")
 assert_eq "get_capture_timestamp reads mtime" "20260710-143022" "$result"
 
+if is_shottr_screenshot "SCR-20260710-abcd.png"; then
+  echo "PASS: is_shottr_screenshot true for raw Shottr name"
+else
+  echo "FAIL: is_shottr_screenshot true for raw Shottr name"
+  FAILS=$((FAILS + 1))
+fi
+
+if is_shottr_screenshot "operate-incident-view.png"; then
+  echo "FAIL: is_shottr_screenshot false for already-renamed file"
+  FAILS=$((FAILS + 1))
+else
+  echo "PASS: is_shottr_screenshot false for already-renamed file"
+fi
+
+if is_shottr_screenshot "random-notes.txt"; then
+  echo "FAIL: is_shottr_screenshot false for unrelated file"
+  FAILS=$((FAILS + 1))
+else
+  echo "PASS: is_shottr_screenshot false for unrelated file"
+fi
+
 echo "--- $FAILS failure(s) ---"
 [ "$FAILS" -eq 0 ]
