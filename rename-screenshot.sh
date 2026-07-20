@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCREENSHOTS_DIR="${SCREENSHOTS_DIR:-$HOME/Downloads/Screenshots}"
+SCREENSHOTS_DIR="${SCREENSHOTS_DIR:-$HOME/Screenshots}"
 ATTEMPTS_FILE="${ATTEMPTS_FILE:-$HOME/Library/Application Support/screenshot-rename/attempts.json}"
 LOG_FILE="${LOG_FILE:-$HOME/Library/Logs/screenshot-rename.log}"
 MAIN_RETRY_COUNT="${MAIN_RETRY_COUNT:-3}"
