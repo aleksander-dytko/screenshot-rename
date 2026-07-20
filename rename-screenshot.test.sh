@@ -197,5 +197,31 @@ else
   FAILS=$((FAILS + 1))
 fi
 
+# main() retries on an empty scan: catches a screenshot that appears just after the
+# first look, simulating launchd's WatchPaths firing before Shottr's write settles
+rm -f "$ATTEMPTS_FILE"
+rm -f "$SCREENSHOTS_DIR"/*
+( sleep 0.3; touch "$SCREENSHOTS_DIR/SCR-20260720-late.png" ) &
+MAIN_RETRY_COUNT=4 MAIN_RETRY_DELAY=0.2 CLAUDE_BIN="$FAKE_CLAUDE" main
+wait
+if [ -f "$SCREENSHOTS_DIR/operate-incident-view-timeline.png" ]; then
+  echo "PASS: main retries and catches a screenshot that appears after the initial scan"
+else
+  echo "FAIL: main retries and catches a screenshot that appears after the initial scan"
+  FAILS=$((FAILS + 1))
+fi
+
+# main() gives up gracefully (no crash, clean exit) if nothing ever appears within retries
+rm -f "$ATTEMPTS_FILE"
+rm -f "$SCREENSHOTS_DIR"/*
+MAIN_RETRY_COUNT=2 MAIN_RETRY_DELAY=0.1 CLAUDE_BIN="$FAKE_CLAUDE" main
+result=$?
+if [ "$result" -eq 0 ]; then
+  echo "PASS: main returns cleanly when nothing appears within retries"
+else
+  echo "FAIL: main returns cleanly when nothing appears within retries (got exit $result)"
+  FAILS=$((FAILS + 1))
+fi
+
 echo "--- $FAILS failure(s) ---"
 [ "$FAILS" -eq 0 ]

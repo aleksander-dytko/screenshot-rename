@@ -4,6 +4,8 @@ set -euo pipefail
 SCREENSHOTS_DIR="${SCREENSHOTS_DIR:-$HOME/Downloads/Screenshots}"
 ATTEMPTS_FILE="${ATTEMPTS_FILE:-$HOME/Library/Application Support/screenshot-rename/attempts.json}"
 LOG_FILE="${LOG_FILE:-$HOME/Library/Logs/screenshot-rename.log}"
+MAIN_RETRY_COUNT="${MAIN_RETRY_COUNT:-3}"
+MAIN_RETRY_DELAY="${MAIN_RETRY_DELAY:-2}"
 
 log_line() {
   mkdir -p "$(dirname "$LOG_FILE")"
@@ -119,12 +121,22 @@ process_screenshot() {
 
 main() {
   mkdir -p "$SCREENSHOTS_DIR"
-  local f name
-  for f in "$SCREENSHOTS_DIR"/*; do
-    [ -e "$f" ] || continue
-    name=$(basename "$f")
-    if is_shottr_screenshot "$name"; then
-      process_screenshot "$SCREENSHOTS_DIR" "$name" || true
+  local attempt found f name
+  for attempt in $(seq 1 "$MAIN_RETRY_COUNT"); do
+    found=0
+    for f in "$SCREENSHOTS_DIR"/*; do
+      [ -e "$f" ] || continue
+      name=$(basename "$f")
+      if is_shottr_screenshot "$name"; then
+        found=1
+        process_screenshot "$SCREENSHOTS_DIR" "$name" || true
+      fi
+    done
+    if [ "$found" -eq 1 ]; then
+      return 0
+    fi
+    if [ "$attempt" -lt "$MAIN_RETRY_COUNT" ]; then
+      sleep "$MAIN_RETRY_DELAY"
     fi
   done
 }
